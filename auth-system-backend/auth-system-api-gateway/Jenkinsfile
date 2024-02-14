@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+    tools {
+        maven 'Maven_3.9'
+    }
+
+    environment {
+        DOCKERHUB_ACCOUNT = 'alexwu727'
+        SERVICE_NAME = 'auth-system-api-gateway'
+        VERSION = 'latest'
+        EC2_HOST = '52.53.174.155'
+    }
+    stages {
+        stage('Test') {
+            steps {
+                sh "mvn -f ${env.SERVICE_NAME} test -Ptest"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh "mvn -f ${env.SERVICE_NAME} clean package -Pprod -DskipTests"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${env.DOCKERHUB_ACCOUNT}/${env.SERVICE_NAME}:${env.VERSION}", "-f ./${env.SERVICE_NAME}/Dockerfile .")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo 'Pushing Docker Image'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'DockerhubAccount') {
+                        dockerImage.push()
+                    }
+                }
+                echo 'Pushed Docker Image'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: ['SSHKey']) {
+                    // Pull the Docker image
+                    sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} \"docker pull ${env.DOCKERHUB_ACCOUNT}/${env.SERVICE_NAME}:${env.VERSION}\""
+
+                    // Stop the existing container if needed
+                    sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} \"docker stop ${env.SERVICE_NAME} || true\""
+
+                    // Remove the existing container if needed
+                    sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} \"docker rm ${env.SERVICE_NAME} || true\""
+
+                    // Run the new Docker container
+                    sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} \"docker run -d --name ${env.SERVICE_NAME} -p 8080:8080 ${env.DOCKERHUB_ACCOUNT}/${env.SERVICE_NAME}:${env.VERSION}\""
+                }
+            }
+        }
+    }
+}

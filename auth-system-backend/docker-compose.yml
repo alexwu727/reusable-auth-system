@@ -1,0 +1,69 @@
+version: '3'
+services:
+  auth-system-mysql:
+    image: mysql
+    container_name: auth-system-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db-scripts:/docker-entrypoint-initdb.d
+      - /var/lib/docker/volumes/auth-system/mysql:/var/lib/mysql
+    networks:
+      - auth-system-network
+
+  eureka-server:
+    build: ./auth-system-eureka-server
+    image: auth-system-eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - auth-system-network
+
+  api-gateway:
+    build: ./auth-system-api-gateway
+    image: auth-system-api-gateway:latest
+    depends_on:
+        - eureka-server
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - auth-system-network
+
+  user-service:
+    build: ./auth-system-user-service
+    image: user-service:latest
+    depends_on:
+      auth-system-mysql:
+        condition: service_healthy
+    container_name: user-service
+    ports:
+      - "8081:8080"
+    networks:
+      - auth-system-network
+
+  authentication-service:
+    build: ./auth-system-authentication-service
+    image: auth-system-authentication-service:latest
+    depends_on:
+      auth-system-mysql:
+        condition: service_healthy
+    container_name: authentication-service
+    ports:
+      - "8082:8080"
+    networks:
+      - auth-system-network
+
+networks:
+  auth-system-network:
+    driver: bridge
