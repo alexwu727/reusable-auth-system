@@ -32,4 +32,6 @@ replay_pid*
 # target folder in each module
 **/target/
 
+### application dev properties ###
+**/application-dev.properties
 
