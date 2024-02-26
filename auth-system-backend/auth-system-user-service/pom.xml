@@ -95,6 +95,13 @@
 		</profile>
 
 		<profile>
+			<id>container</id>
+			<properties>
+				<spring.profiles.active>container</spring.profiles.active>
+			</properties>
+		</profile>
+
+		<profile>
 			<id>prod</id>
 			<properties>
 				<spring.profiles.active>prod</spring.profiles.active>
