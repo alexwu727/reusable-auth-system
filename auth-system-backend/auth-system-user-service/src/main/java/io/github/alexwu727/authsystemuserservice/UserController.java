@@ -60,14 +60,6 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id, @RequestBody @Valid RegistrationRequest registrationRequest) {
-        User user = userMapper.UserRegistrationToUser(registrationRequest);
-        User updatedUser = userService.update(id, user);
-        UserResponse userResponse = userMapper.UserToUserResponse(updatedUser);
-        return ResponseEntity.status(HttpStatus.OK).body(userResponse);
-    }
-
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> patchUser(@PathVariable("id") Long id, @RequestBody @Valid UserPatch userPatch) {
         User user = userMapper.UserPatchToUser(userPatch);

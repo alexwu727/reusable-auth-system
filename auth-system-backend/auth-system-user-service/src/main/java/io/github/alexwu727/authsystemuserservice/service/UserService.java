@@ -11,7 +11,6 @@ public interface UserService {
     User register(RegistrationRequest request);
     User findByUsername(String username);
     User findById(Long id);
-    User update(Long id, User user);
     User patch(Long id, Map<String, Object> request);
     void delete(Long id);
 }
