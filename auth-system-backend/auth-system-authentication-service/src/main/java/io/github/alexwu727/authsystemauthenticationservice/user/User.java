@@ -29,6 +29,9 @@ public class User implements UserDetails{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false)
+    private boolean enabled;
+
     @JsonProperty("username")
     @Column(unique = true, nullable = false)
     @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters")
@@ -47,15 +50,20 @@ public class User implements UserDetails{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(nullable = false)
-    private boolean enabled;
-
-    @Column(name = "verification_code", unique = true, nullable = true)
-    private String verificationCode;
-
     @Column(name = "registration_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date();
+
+    @Column(name = "last_login_date", nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastLoginDate;
+
+    @Column(name = "last_update_date", nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastUpdateDate;
+
+    @Column(name = "verification_code", unique = true, nullable = true)
+    private String verificationCode;
 
     @Column(name = "verification_code_expiration", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)

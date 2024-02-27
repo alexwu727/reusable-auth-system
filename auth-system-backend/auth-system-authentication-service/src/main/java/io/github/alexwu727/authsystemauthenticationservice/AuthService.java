@@ -123,10 +123,10 @@ public class AuthService {
         } else {
             user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found"));
         }
-
         if (!user.isEnabled()) {
             throw new UserNotVerifiedException("User is not verified");
         }
+        user.setLastLoginDate(new Date());
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -162,6 +162,7 @@ public class AuthService {
             throw new RuntimeException(e);
         }
         validateUser(updatedUser);
+        updatedUser.setLastUpdateDate(new Date());
         userRepository.save(updatedUser);
         return UpdateResponse.builder()
                 .username(updatedUser.getUsername())
