@@ -30,10 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -145,7 +142,6 @@ public class AuthService {
                 .build();
     }
 
-    // use rest template to call user service to register user
     public void storeInUserService(User user) {
         String url = userServiceBaseUrl + "register";
         restTemplate.postForEntity(url, user, User.class);
@@ -155,6 +151,9 @@ public class AuthService {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
             throw new UserNotFoundException("User not found");
+        }
+        if (!user.get().isEnabled()) {
+            throw new UserNotVerifiedException("User is not verified");
         }
         User updatedUser;
         try {
@@ -172,6 +171,39 @@ public class AuthService {
     }
 
     private User applyPatchToUser(JsonPatch patch, User targetUser) throws JsonPatchException, JsonProcessingException {
+        JsonNode patchNode = objectMapper.convertValue(patch, JsonNode.class);
+        for (JsonNode operation : patchNode) {
+            if (operation.get("path") == null) {
+                throw new JsonPatchException("Missing path in operation");
+            }
+            String path = operation.get("path").asText();
+            if (List.of("add", "copy", "move", "remove").contains(operation.get("op").asText())) {
+                throw new JsonPatchException("Operation " + operation.get("op").asText() + " is not allowed");
+            }
+            switch (path) {
+                case "/username" -> {
+                    if (userRepository.existsByUsername(operation.get("value").asText())) {
+                        throw new UsernameAlreadyExistsException("Username " + operation.get("value").asText() + " already exists");
+                    }
+                }
+                case "/email" -> {
+                    if (userRepository.existsByEmail(operation.get("value").asText())) {
+                        throw new EmailAlreadyExistsException("Email " + operation.get("value").asText() + " already exists");
+                    }
+                }
+                case "/role" -> {
+                    if (operation.get("value") == null) {
+                        throw new JsonPatchException("Missing value in operation");
+                    }
+                    List<String> validRoles = Arrays.stream(Role.values()).map(Enum::name).toList();
+                    if (!validRoles.contains(operation.get("value").asText())) {
+                        throw new JsonPatchException("Invalid role value " + operation.get("value").asText());
+                    }
+                }
+                default ->
+                        throw new JsonPatchException("Operation " + operation.get("op").asText() + " on path " + operation.get("path").asText() + " is not allowed");
+            }
+        }
         JsonNode patched = patch.apply(objectMapper.convertValue(targetUser, JsonNode.class));
         return objectMapper.treeToValue(patched, User.class);
     }

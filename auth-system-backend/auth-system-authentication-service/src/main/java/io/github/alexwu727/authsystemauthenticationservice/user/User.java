@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +31,7 @@ public class User implements UserDetails{
 
     @JsonProperty("username")
     @Column(unique = true, nullable = false)
+    @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters")
     private String username;
 
     @Column(nullable = false)
