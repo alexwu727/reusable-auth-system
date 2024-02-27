@@ -7,7 +7,7 @@ import io.github.alexwu727.authsystemuserservice.exception.UserNotFoundException
 import io.github.alexwu727.authsystemuserservice.service.UserService;
 import io.github.alexwu727.authsystemuserservice.util.UserMapper;
 import io.github.alexwu727.authsystemuserservice.vo.RegistrationResponse;
-import io.github.alexwu727.authsystemuserservice.vo.UserRegistration;
+import io.github.alexwu727.authsystemuserservice.vo.RegistrationRequest;
 import io.github.alexwu727.authsystemuserservice.vo.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,15 +38,15 @@ class UserControllerTest {
 
     private User user;
     private UserResponse userResponse;
-    private UserRegistration userRegistration;
+    private RegistrationRequest registrationRequest;
     private RegistrationResponse registrationResponse;
     private String token;
 
     @BeforeEach
     void setup() {
-        user = new User(1L, "alex", "123456", "alex@example.com", Role.USER, new Date());
+        user = new User(1L, "alex", "alex@example.com", Role.USER, new Date());
         userResponse = new UserResponse(1L, "alex", "alex@example.com", "USER");
-        userRegistration = new UserRegistration("alex", "123456", "alex@example.com", Role.USER);
+        registrationRequest = new RegistrationRequest(1L, "alex", "alex@example.com", Role.USER, new Date());
         token = "token";
         registrationResponse = new RegistrationResponse(userResponse, token);
     }
@@ -67,14 +67,14 @@ class UserControllerTest {
     @Test
     void register_WithValidUserRegistration_ReturnsCreatedUser() {
         // Arrange
-        when(userService.register(any(User.class))).thenReturn(Pair.of(user, token));
+        when(userService.register(any(RegistrationRequest.class))).thenReturn(user);
 
         // Act
-        ResponseEntity<RegistrationResponse> result = userController.register(userRegistration);
+        ResponseEntity<UserResponse> result = userController.register(registrationRequest);
 
         // Assert
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        assertEquals(registrationResponse, result.getBody());
+        assertEquals(userResponse, result.getBody());
     }
 
     @Test
@@ -127,7 +127,7 @@ class UserControllerTest {
         when(userService.update(any(Long.class), any(User.class))).thenReturn(user);
 
         // Act
-        ResponseEntity<UserResponse> result = userController.updateUser(1L, userRegistration);
+        ResponseEntity<UserResponse> result = userController.updateUser(1L, registrationRequest);
 
         // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -140,7 +140,7 @@ class UserControllerTest {
         when(userService.update(any(Long.class), any(User.class))).thenThrow(new UserNotFoundException("User not found"));
 
         // Act & Assert
-        assertThrows(UserNotFoundException.class, () -> userController.updateUser(1L, userRegistration));
+        assertThrows(UserNotFoundException.class, () -> userController.updateUser(1L, registrationRequest));
     }
 
     @Test

@@ -5,13 +5,13 @@ import io.github.alexwu727.authsystemuserservice.User;
 import io.github.alexwu727.authsystemuserservice.exception.UserNotFoundException;
 import io.github.alexwu727.authsystemuserservice.exception.UsernameAlreadyExistsException;
 import io.github.alexwu727.authsystemuserservice.service.UserService;
+import io.github.alexwu727.authsystemuserservice.vo.RegistrationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.util.Pair;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -41,15 +41,15 @@ public class UserControllerIT {
     private String token;
     @BeforeEach
     void setup() {
-        user1 = new User(1L, "alex", "12345678", "alex@example.com", Role.USER, new Date());
-        user2 = new User(2L, "bob", "12345678", "bob@example.com", Role.ADMIN, new Date());
+        user1 = new User(1L, "alex", "alex@example.com", Role.USER, new Date());
+        user2 = new User(2L, "bob", "bob@example.com", Role.ADMIN, new Date());
         users = new ArrayList<>();
         users.add(user1);
         users.add(user2);
         userRegistrationJson = "{\n" +
                 "\"username\": \"alex\",\n" +
-                "\"password\": \"12345678\",\n" +
                 "\"email\": \"alex@example.com\"" +
+                "\"role\": \"USER\"" +
                 "\n}";
         token = "token";
     }
@@ -104,7 +104,7 @@ public class UserControllerIT {
 
     @Test
     void register_WithValidUserRegistration_ReturnsCreatedUser() throws Exception {
-        when(userService.register(any(User.class))).thenReturn(Pair.of(user1, token));
+        when(userService.register(any(RegistrationRequest.class))).thenReturn(user1);
         mockMvc.perform(post("/api/v1/users/")
                         .contentType("application/json")
                         .content(userRegistrationJson))
@@ -121,7 +121,6 @@ public class UserControllerIT {
                         .contentType("application/json")
                         .content("{\n" +
                                 "\"username\": \"alex\",\n" +
-                                "\"password\": \"123456\",\n" +
                                 "\"email\": \"alex@example.com\"" +
                                 "\n}"))
                 .andExpect(status().isBadRequest())
@@ -131,7 +130,7 @@ public class UserControllerIT {
 
     @Test
     void register_WithExistingUsername_ReturnsBadRequest() throws Exception {
-        when(userService.register(any(User.class))).thenThrow(new UsernameAlreadyExistsException("Username " + user1.getUsername() + " already exists"));
+        when(userService.register(any(RegistrationRequest.class))).thenThrow(new UsernameAlreadyExistsException("Username " + user1.getUsername() + " already exists"));
         mockMvc.perform(post("/api/v1/users/")
                         .contentType("application/json")
                         .content(userRegistrationJson))
@@ -143,7 +142,7 @@ public class UserControllerIT {
 
     @Test
     void register_WithExistingEmail_ReturnsBadRequest() throws Exception {
-        when(userService.register(any(User.class))).thenThrow(new UsernameAlreadyExistsException("Email " + user1.getEmail() + " already exists"));
+        when(userService.register(any(RegistrationRequest.class))).thenThrow(new UsernameAlreadyExistsException("Email " + user1.getEmail() + " already exists"));
         mockMvc.perform(post("/api/v1/users/")
                         .contentType("application/json")
                         .content(userRegistrationJson))

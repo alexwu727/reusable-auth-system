@@ -2,16 +2,15 @@ package io.github.alexwu727.authsystemuserservice.util;
 
 import io.github.alexwu727.authsystemuserservice.User;
 import io.github.alexwu727.authsystemuserservice.vo.UserPatch;
-import io.github.alexwu727.authsystemuserservice.vo.UserRegistration;
+import io.github.alexwu727.authsystemuserservice.vo.RegistrationRequest;
 import io.github.alexwu727.authsystemuserservice.vo.UserResponse;
 
 public class UserMapper {
-    public User UserRegistrationToUser(UserRegistration userRegistration) {
+    public User UserRegistrationToUser(RegistrationRequest registrationRequest) {
         User user = new User();
-        user.setUsername(userRegistration.getUsername());
-        user.setEmail(userRegistration.getEmail());
-        user.setPassword(userRegistration.getPassword());
-        user.setRole(userRegistration.getRole());
+        user.setUsername(registrationRequest.getUsername());
+        user.setEmail(registrationRequest.getEmail());
+        user.setRole(registrationRequest.getRole());
         return user;
     }
 
@@ -28,7 +27,6 @@ public class UserMapper {
         User user = new User();
         user.setUsername(userPatch.getUsername());
         user.setEmail(userPatch.getEmail());
-        user.setPassword(userPatch.getPassword());
         user.setRole(userPatch.getRole());
         return user;
     }

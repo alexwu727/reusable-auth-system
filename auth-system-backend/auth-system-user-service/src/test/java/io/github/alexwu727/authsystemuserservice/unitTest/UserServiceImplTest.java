@@ -7,6 +7,7 @@ import io.github.alexwu727.authsystemuserservice.exception.EmailAlreadyExistsExc
 import io.github.alexwu727.authsystemuserservice.exception.UserNotFoundException;
 import io.github.alexwu727.authsystemuserservice.exception.UsernameAlreadyExistsException;
 import io.github.alexwu727.authsystemuserservice.service.UserServiceImpl;
+import io.github.alexwu727.authsystemuserservice.vo.RegistrationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,18 +37,13 @@ class UserServiceImplTest {
 
     private User user1;
     private User user2;
-    private ResponseEntity<Map<String, String>> authResponse;
-    private String token;
-
+    private RegistrationRequest registrationRequest;
 
     @BeforeEach
     void setUp() {
-        user1 = new User(1L, "alex", "123456", "alex@example.com", Role.USER, new Date());
-        user2 = new User(2L, "bob", "123456", "bob@example.com", Role.ADMIN, new Date());
-        token = "token";
-        Map<String, String> authResponseMap = new HashMap<>();
-        authResponseMap.put("token", token);
-        authResponse = new ResponseEntity<>(authResponseMap, null, HttpStatus.OK);
+        user1 = new User(1L, "alex", "alex@example.com", Role.USER, new Date());
+        user2 = new User(2L, "bob", "bob@example.com", Role.ADMIN, new Date());
+        registrationRequest = new RegistrationRequest(1L, "alex", "alex@example.com", Role.USER, new Date());
     }
 
 
@@ -69,14 +65,13 @@ class UserServiceImplTest {
         // Arrange
         when(userRepository.existsByUsername(user1.getUsername())).thenReturn(false);
         when(userRepository.existsByEmail(user1.getEmail())).thenReturn(false);
-        when(userRepository.save(user1)).thenReturn(user1);
-        doReturn(authResponse).when(restTemplate).postForEntity(anyString(), any(), any());
+        when(userRepository.save(any(User.class))).thenReturn(user1);
+
         // Act
-        Pair<User, String> result = userService.register(user1);
+        User result = userService.register(registrationRequest);
 
         // Assert
-        assertEquals(user1, result.getFirst());
-        assertEquals(token, result.getSecond());
+        assertEquals(user1, result);
     }
 
     @Test
@@ -85,7 +80,7 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername(user1.getUsername())).thenReturn(true);
 
         // Act & Assert
-        Exception exception = assertThrows(UsernameAlreadyExistsException.class, () -> userService.register(user1));
+        Exception exception = assertThrows(UsernameAlreadyExistsException.class, () -> userService.register(registrationRequest));
         assertEquals("Username " + user1.getUsername() + " already exists", exception.getMessage());
     }
 
@@ -96,7 +91,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail(user1.getEmail())).thenReturn(true);
 
         // Act & Assert
-        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> userService.register(user1));
+        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> userService.register(registrationRequest));
         assertEquals("Email " + user1.getEmail() + " already exists", exception.getMessage());
     }
 

@@ -4,7 +4,7 @@ import io.github.alexwu727.authsystemuserservice.service.UserService;
 import io.github.alexwu727.authsystemuserservice.util.UserMapper;
 import io.github.alexwu727.authsystemuserservice.vo.RegistrationResponse;
 import io.github.alexwu727.authsystemuserservice.vo.UserPatch;
-import io.github.alexwu727.authsystemuserservice.vo.UserRegistration;
+import io.github.alexwu727.authsystemuserservice.vo.RegistrationRequest;
 import io.github.alexwu727.authsystemuserservice.vo.UserResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,22 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
-    @Autowired
-    private DiscoveryClient discoveryClient;
-
-    @GetMapping("/discovery")
-    public void printServiceInstances() {
-        List<ServiceInstance> instances = discoveryClient.getInstances("authentication-service");
-        for (ServiceInstance instance : instances) {
-            System.out.println("Instance: " + instance.getServiceId() + " - " + instance.getUri());
-        }
-    }
 
     @Autowired
     public UserController(UserService userService) {
@@ -47,13 +38,10 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegistrationResponse> register(@RequestBody @Valid UserRegistration userRegistration) {
-        User user = userMapper.UserRegistrationToUser(userRegistration);
-        Pair<User, String> userStringPair = userService.register(user);
-        UserResponse userResponse = userMapper.UserToUserResponse(userStringPair.getFirst());
-        String token = userStringPair.getSecond();
-        RegistrationResponse registrationResponse = new RegistrationResponse(userResponse, token);
-        return ResponseEntity.status(HttpStatus.CREATED).body(registrationResponse);
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid RegistrationRequest request) {
+        User userSaved = userService.register(request);
+        UserResponse userResponse = userMapper.UserToUserResponse(userSaved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
     // get user by id
@@ -73,8 +61,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id, @RequestBody @Valid UserRegistration userRegistration) {
-        User user = userMapper.UserRegistrationToUser(userRegistration);
+    public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id, @RequestBody @Valid RegistrationRequest registrationRequest) {
+        User user = userMapper.UserRegistrationToUser(registrationRequest);
         User updatedUser = userService.update(id, user);
         UserResponse userResponse = userMapper.UserToUserResponse(updatedUser);
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
@@ -83,7 +71,12 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> patchUser(@PathVariable("id") Long id, @RequestBody @Valid UserPatch userPatch) {
         User user = userMapper.UserPatchToUser(userPatch);
-        User updatedUser = userService.patch(id, user);
+        Map<String, Object> userMap = Map.of(
+                "username", user.getUsername(),
+                "email", user.getEmail(),
+                "role", user.getRole()
+        );
+        User updatedUser = userService.patch(id, userMap);
         UserResponse userResponse = userMapper.UserToUserResponse(updatedUser);
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
