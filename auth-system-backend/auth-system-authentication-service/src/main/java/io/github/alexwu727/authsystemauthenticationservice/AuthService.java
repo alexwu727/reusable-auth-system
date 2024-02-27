@@ -1,5 +1,11 @@
 package io.github.alexwu727.authsystemauthenticationservice;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
+import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.github.alexwu727.authsystemauthenticationservice.exception.*;
 import io.github.alexwu727.authsystemauthenticationservice.user.Role;
 import io.github.alexwu727.authsystemauthenticationservice.user.User;
@@ -8,6 +14,10 @@ import io.github.alexwu727.authsystemauthenticationservice.util.JwtUtil;
 import io.github.alexwu727.authsystemauthenticationservice.vo.AuthResponse;
 import io.github.alexwu727.authsystemauthenticationservice.vo.LoginRequest;
 import io.github.alexwu727.authsystemauthenticationservice.vo.RegistrationRequest;
+import io.github.alexwu727.authsystemauthenticationservice.vo.UpdateResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +31,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +44,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
     @Value("${user.service.base.url}")
     private String userServiceBaseUrl;
 
@@ -135,5 +149,37 @@ public class AuthService {
     public void storeInUserService(User user) {
         String url = userServiceBaseUrl + "register";
         restTemplate.postForEntity(url, user, User.class);
+    }
+
+    public UpdateResponse update(Long id, JsonPatch patch) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException("User not found");
+        }
+        User updatedUser;
+        try {
+            updatedUser = applyPatchToUser(patch, user.get());
+        } catch (JsonPatchException | JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        validateUser(updatedUser);
+        userRepository.save(updatedUser);
+        return UpdateResponse.builder()
+                .username(updatedUser.getUsername())
+                .email(updatedUser.getEmail())
+                .role(updatedUser.getRole())
+                .build();
+    }
+
+    private User applyPatchToUser(JsonPatch patch, User targetUser) throws JsonPatchException, JsonProcessingException {
+        JsonNode patched = patch.apply(objectMapper.convertValue(targetUser, JsonNode.class));
+        return objectMapper.treeToValue(patched, User.class);
+    }
+
+    private void validateUser(User user) {
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 }

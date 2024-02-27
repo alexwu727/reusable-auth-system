@@ -1,8 +1,10 @@
 package io.github.alexwu727.authsystemauthenticationservice;
 
+import com.github.fge.jsonpatch.JsonPatch;
 import io.github.alexwu727.authsystemauthenticationservice.vo.AuthResponse;
 import io.github.alexwu727.authsystemauthenticationservice.vo.LoginRequest;
 import io.github.alexwu727.authsystemauthenticationservice.vo.RegistrationRequest;
+import io.github.alexwu727.authsystemauthenticationservice.vo.UpdateResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,5 +29,10 @@ public class AuthController {
     public ResponseEntity<String> verify(@RequestParam String verificationCode) {
         authService.verifyUser(verificationCode);
         return ResponseEntity.ok("User verified successfully");
+    }
+
+    @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<UpdateResponse> update(@PathVariable Long id, @RequestBody JsonPatch patch) {
+        return ResponseEntity.ok(authService.update(id, patch));
     }
 }
