@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,11 +17,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+@Entity
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Builder
 @Table(name="users")
 public class User implements UserDetails{
     @Id
@@ -31,6 +30,9 @@ public class User implements UserDetails{
 
     @Column(nullable = false)
     private boolean enabled;
+
+    @Column(nullable = false)
+    private boolean verified;
 
     @JsonProperty("username")
     @Column(unique = true, nullable = false)

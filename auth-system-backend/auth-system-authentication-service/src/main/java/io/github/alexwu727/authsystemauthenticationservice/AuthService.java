@@ -5,39 +5,31 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.github.alexwu727.authsystemauthenticationservice.exception.*;
-import io.github.alexwu727.authsystemauthenticationservice.user.Role;
-import io.github.alexwu727.authsystemauthenticationservice.user.User;
-import io.github.alexwu727.authsystemauthenticationservice.user.UserRepository;
+import io.github.alexwu727.authsystemauthenticationservice.user.*;
+import io.github.alexwu727.authsystemauthenticationservice.util.CodeUtil;
 import io.github.alexwu727.authsystemauthenticationservice.util.JwtUtil;
-import io.github.alexwu727.authsystemauthenticationservice.vo.AuthResponse;
-import io.github.alexwu727.authsystemauthenticationservice.vo.LoginRequest;
-import io.github.alexwu727.authsystemauthenticationservice.vo.RegistrationRequest;
-import io.github.alexwu727.authsystemauthenticationservice.vo.UpdateResponse;
+import io.github.alexwu727.authsystemauthenticationservice.vo.*;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.security.SecureRandom;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
+    private final CodeUtil codeUtil;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final RestTemplate restTemplate;
@@ -46,20 +38,10 @@ public class AuthService {
     @Value("${user.service.base.url}")
     private String userServiceBaseUrl;
 
-    public String createVerificationCode() {
-        SecureRandom random = new SecureRandom();
-        StringBuilder verificationCode = new StringBuilder(String.valueOf(random.nextInt(1000000)));
-        // add zero padding to the left
-        while (verificationCode.length() < 6) {
-            verificationCode.insert(0, "0");
-        }
-        return verificationCode.toString();
-    }
-
     public AuthResponse register(RegistrationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
-            if (!user.isEnabled() && (user.getVerificationCodeExpiration().before(new Date()))) {
+            if (!user.isVerified() && (user.getVerificationCodeExpiration().before(new Date()))) {
                 userRepository.delete(user);
             } else {
                 throw new UsernameAlreadyExistsException("Username " + request.getUsername() + " already exists");
@@ -67,40 +49,49 @@ public class AuthService {
         }
         if (userRepository.existsByEmail(request.getEmail())) {
             User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-            if (!user.isEnabled() && (user.getVerificationCodeExpiration().before(new Date()))) {
+            if (!user.isVerified() && (user.getVerificationCodeExpiration().before(new Date()))) {
                 userRepository.delete(user);
             } else {
                 throw new EmailAlreadyExistsException("Email " + request.getEmail() + " already exists");
             }
         }
-        String verificationCode = createVerificationCode();
+        String verificationCode = codeUtil.generateCode();
         Date expiration = new Date(System.currentTimeMillis() + 2 * 60 * 1000);
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .role(request.getRole() == null ? Role.USER : request.getRole())
+                .verified(false)
                 .enabled(false)
                 .verificationCode(verificationCode)
                 .verificationCodeExpiration(expiration)
                 .createdAt(new Date())
                 .build();
         userRepository.save(user);
-        sendVerificationCode(request.getUsername(), request.getEmail(), verificationCode);
+        codeUtil.sendCode(request.getUsername(), request.getEmail(), verificationCode, true);
         String token = jwtUtil.generateToken(user);
         return AuthResponse.builder()
                 .token(token)
                 .build();
     }
 
-    public void sendVerificationCode(String username, String email, String verificationCode) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("auth.system.io@gmail.com");
-        message.setTo("alexwu727@gmail.com");
-//        message.setTo(email);
-        message.setSubject("Verification Code");
-        message.setText("Hello, " + username + ". Your verification code is " + verificationCode);
-        mailSender.send(message);
+    public void verifyUser(String email, String verificationCode) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (user.isVerified()) {
+            throw new UserAlreadyVerifiedException("User is already verified");
+        }
+        if (!user.getVerificationCode().equals(verificationCode)) {
+            throw new VerificationCodeMismatchException("Verification code does not match");
+        }
+        if (user.getVerificationCodeExpiration().before(new Date())) {
+            throw new VerificationCodeExpiredException("Verification code has expired");
+        }
+        user.enable();
+        user.setVerified(true);
+        storeInUserService(user);
+        user.setVerificationCode(null);
+        userRepository.save(user);
     }
 
     public void verifyUser(String verificationCode) {
@@ -114,6 +105,11 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    private void storeInUserService(User user) {
+        String url = userServiceBaseUrl + "register";
+        restTemplate.postForEntity(url, user, User.class);
+    }
+
     public AuthResponse login(LoginRequest request) {
         String username = request.getUsername();
         User user;
@@ -123,10 +119,11 @@ public class AuthService {
         } else {
             user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found"));
         }
-        if (!user.isEnabled()) {
+        if (!user.isVerified()) {
             throw new UserNotVerifiedException("User is not verified");
         }
         user.setLastLoginDate(new Date());
+        userRepository.save(user);
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -142,17 +139,12 @@ public class AuthService {
                 .build();
     }
 
-    public void storeInUserService(User user) {
-        String url = userServiceBaseUrl + "register";
-        restTemplate.postForEntity(url, user, User.class);
-    }
-
     public UpdateResponse update(Long id, JsonPatch patch) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
             throw new UserNotFoundException("User not found");
         }
-        if (!user.get().isEnabled()) {
+        if (!user.get().isVerified()) {
             throw new UserNotVerifiedException("User is not verified");
         }
         User updatedUser;
@@ -214,5 +206,69 @@ public class AuthService {
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(violations);
         }
+    }
+
+    public void delete(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException("User not found");
+        }
+        if (!user.get().isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        userRepository.delete(user.get());
+    }
+
+    public void createPasswordResetVerificationCode(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!user.isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        PasswordResetVerificationCode token = PasswordResetVerificationCode.builder()
+                .user(user)
+                .verificationCode(codeUtil.generateCode())
+                .expiryDate(new Date(System.currentTimeMillis() + PasswordResetVerificationCode.EXPIRATION * 60 * 1000))
+                .build();
+        passwordResetVerificationCodeRepository.save(token);
+        codeUtil.sendCode(user.getUsername(), user.getEmail(), token.getVerificationCode(), false);
+    }
+
+    public void verifyPasswordResetVerificationCode(String email, String verificationCode) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!user.isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        PasswordResetVerificationCode passwordResetVerificationCode = passwordResetVerificationCodeRepository.findByUser(user).orElseThrow(() -> new VerificationCodeNotFoundException("Verification code not found"));
+        if (!passwordResetVerificationCode.getVerificationCode().equals(verificationCode)) {
+            throw new VerificationCodeMismatchException("Verification code does not match");
+        }
+        if (passwordResetVerificationCode.getExpiryDate().before(new Date())) {
+            throw new VerificationCodeExpiredException("Verification code has expired");
+        }
+    }
+
+    public void verifyAndResetPassword(ResetPasswordRequest request) {
+        verifyPasswordResetVerificationCode(request.getEmail(), request.getVerificationCode());
+        resetPassword(request.getEmail(), request.getNewPassword());
+    }
+
+    public void updatePassword(UpdatePasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!user.isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new PasswordMismatchException("Password does not match");
+        }
+        resetPassword(request.getEmail(), request.getNewPassword());
+    }
+
+    private void resetPassword(String email, String password) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!user.isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
     }
 }

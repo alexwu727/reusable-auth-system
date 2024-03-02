@@ -64,6 +64,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(errorResponse);
     }
 
+    @ExceptionHandler(UserAlreadyVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyVerifiedException(UserAlreadyVerifiedException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setError(ex.getClass().getSimpleName());
+        errorResponse.setStatus(HttpStatus.CONFLICT.value());
+        errorResponse.setPath(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT.value()).body(errorResponse);
+    }
+
     @ExceptionHandler(VerificationCodeNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleVerificationCodeNotFoundException(VerificationCodeNotFoundException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
@@ -74,14 +84,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(errorResponse);
     }
 
+    @ExceptionHandler(VerificationCodeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleVerificationCodeMismatchException(VerificationCodeMismatchException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setError(ex.getClass().getSimpleName());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setPath(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(errorResponse);
+    }
+
     @ExceptionHandler(VerificationCodeExpiredException.class)
     public ResponseEntity<ErrorResponse> handleVerificationCodeExpiredException(VerificationCodeExpiredException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setMessage(ex.getMessage());
         errorResponse.setError(ex.getClass().getSimpleName());
-        errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
         errorResponse.setPath(request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(errorResponse);
     }
 
     @ExceptionHandler(UserNotVerifiedException.class)
@@ -92,6 +112,16 @@ public class GlobalExceptionHandler {
         errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
         errorResponse.setPath(request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(errorResponse);
+    }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordMismatchException(PasswordMismatchException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setError(ex.getClass().getSimpleName());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setPath(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(errorResponse);
     }
 
     @ExceptionHandler({JsonParseException.class, JsonProcessingException.class, JsonPatchException.class})
