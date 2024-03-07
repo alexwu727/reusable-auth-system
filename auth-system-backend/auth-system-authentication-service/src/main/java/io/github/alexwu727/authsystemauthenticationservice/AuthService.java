@@ -15,10 +15,13 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -110,6 +113,22 @@ public class AuthService {
         restTemplate.postForEntity(url, user, User.class);
     }
 
+    private void updateInUserService(Long id, JsonPatch patch) {
+        // set header content type to application/json-patch+json
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json-patch+json");
+        HttpEntity<JsonPatch> patchEntity = new HttpEntity<>(patch, headers);
+        String url = userServiceBaseUrl + id;
+        try {
+            restTemplate.patchForObject(url, patchEntity, User.class);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().is4xxClientError()) {
+                throw new UserNotFoundException("User not found");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
     public AuthResponse login(LoginRequest request) {
         String username = request.getUsername();
         User user;
@@ -156,6 +175,7 @@ public class AuthService {
         validateUser(updatedUser);
         updatedUser.setLastUpdateDate(new Date());
         userRepository.save(updatedUser);
+        updateInUserService(id, patch);
         return UpdateResponse.builder()
                 .username(updatedUser.getUsername())
                 .email(updatedUser.getEmail())
@@ -245,6 +265,7 @@ public class AuthService {
         if (passwordResetVerificationCode.getExpiryDate().before(new Date())) {
             throw new VerificationCodeExpiredException("Verification code has expired");
         }
+        passwordResetVerificationCodeRepository.delete(passwordResetVerificationCode);
     }
 
     public void verifyAndResetPassword(ResetPasswordRequest request) {
