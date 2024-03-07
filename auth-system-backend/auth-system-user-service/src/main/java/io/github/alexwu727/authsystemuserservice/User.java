@@ -31,4 +31,8 @@ public class User {
     @Column(name = "registration_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date();
+
+    @Column(name = "last_update_date", nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastUpdateDate;
 }

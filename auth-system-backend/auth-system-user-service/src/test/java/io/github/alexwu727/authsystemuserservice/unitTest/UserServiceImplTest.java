@@ -14,9 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.util.Pair;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -148,7 +145,7 @@ class UserServiceImplTest {
         when(userRepository.save(user1)).thenReturn(user1);
 
         // Act
-        User result = userService.update(user1.getId(), user1);
+        User result = userService.patch(user1.getId(), user1);
 
         // Assert
         assertEquals(user1, result);
@@ -160,7 +157,7 @@ class UserServiceImplTest {
         when(userRepository.findById(user1.getId())).thenReturn(Optional.empty());
 
         // Act & Assert
-        Exception exception = assertThrows(UserNotFoundException.class, () -> userService.update(user1.getId(), user1));
+        Exception exception = assertThrows(UserNotFoundException.class, () -> userService.patch(user1.getId(), user1));
         assertEquals("User with id " + user1.getId() + " not found", exception.getMessage());
     }
 
@@ -171,7 +168,7 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername(user1.getUsername())).thenReturn(true);
 
         // Act & Assert
-        Exception exception = assertThrows(UsernameAlreadyExistsException.class, () -> userService.update(user1.getId(), user1));
+        Exception exception = assertThrows(UsernameAlreadyExistsException.class, () -> userService.patch(user1.getId(), user1));
         assertEquals("Username " + user1.getUsername() + " already exists", exception.getMessage());
     }
 
@@ -182,7 +179,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail(user1.getEmail())).thenReturn(true);
 
         // Act & Assert
-        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> userService.update(user1.getId(), user1));
+        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> userService.patch(user1.getId(), user1));
         assertEquals("Email " + user1.getEmail() + " already exists", exception.getMessage());
     }
 

@@ -1,5 +1,10 @@
 package io.github.alexwu727.authsystemuserservice.unitTest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import io.github.alexwu727.authsystemuserservice.Role;
 import io.github.alexwu727.authsystemuserservice.User;
 import io.github.alexwu727.authsystemuserservice.UserController;
@@ -15,10 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,25 +41,40 @@ class UserControllerTest {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     private User user;
     private UserResponse userResponse;
     private RegistrationRequest registrationRequest;
     private RegistrationResponse registrationResponse;
+    private JsonPatch patch;
     private String token;
 
     @BeforeEach
     void setup() {
-        user = new User(1L, "alex", "alex@example.com", Role.USER, new Date());
+        user = new User(1L, "alex", "alex@example.com", Role.USER, new Date(), new Date());
         userResponse = new UserResponse(1L, "alex", "alex@example.com", "USER");
         registrationRequest = new RegistrationRequest(1L, "alex", "alex@example.com", Role.USER, new Date());
         token = "token";
         registrationResponse = new RegistrationResponse(userResponse, token);
+        // json patch with replace username to "alexwu"
+        String patchString = "[{\"op\":\"replace\",\"path\":\"/username\",\"value\":\"alexwu\"}]";
+        try {
+            patch = JsonPatch.fromJson(objectMapper.readTree(patchString));
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
     void getAllUsers_ReturnsAllUsers() {
         // Arrange
-        when(userService.findAll()).thenReturn(List.of(user));
+        when(userService.findAll()).thenReturn(List.of(userResponse));
 
         // Act
         ResponseEntity<List<UserResponse>> result = userController.getAllUsers();
@@ -67,7 +87,7 @@ class UserControllerTest {
     @Test
     void register_WithValidUserRegistration_ReturnsCreatedUser() {
         // Arrange
-        when(userService.register(any(RegistrationRequest.class))).thenReturn(user);
+        when(userService.register(any(RegistrationRequest.class))).thenReturn(userResponse);
 
         // Act
         ResponseEntity<UserResponse> result = userController.register(registrationRequest);
@@ -80,7 +100,7 @@ class UserControllerTest {
     @Test
     void getUserById_WithExistingId_ReturnsUser() {
         // Arrange
-        when(userService.findById(1L)).thenReturn(user);
+        when(userService.findById(1L)).thenReturn(userResponse);
 
         // Act
         ResponseEntity<UserResponse> result = userController.getUserById(1L);
@@ -102,7 +122,7 @@ class UserControllerTest {
     @Test
     void getUserByUsername_WithExistingUsername_ReturnsUser() {
         // Arrange
-        when(userService.findByUsername("alex")).thenReturn(user);
+        when(userService.findByUsername("alex")).thenReturn(userResponse);
 
         // Act
         ResponseEntity<UserResponse> result = userController.getUserByUsername("alex");
@@ -122,12 +142,12 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_WithExistingId_ReturnsUpdatedUser() {
+    void patchUser_WithExistingId_ReturnsUpdatedUser() {
         // Arrange
-        when(userService.update(any(Long.class), any(User.class))).thenReturn(user);
+        when(userService.patch(any(Long.class), any(JsonPatch.class))).thenReturn(userResponse);
 
         // Act
-        ResponseEntity<UserResponse> result = userController.updateUser(1L, registrationRequest);
+        ResponseEntity<UserResponse> result = userController.patchUser(1L, patch);
 
         // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -135,18 +155,18 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_WithNonExistingId_ThrowsUserNotFoundException() {
+    void patchUser_WithNonExistingId_ThrowsUserNotFoundException() {
         // Arrange
-        when(userService.update(any(Long.class), any(User.class))).thenThrow(new UserNotFoundException("User not found"));
+        when(userService.patch(any(Long.class), any(JsonPatch.class))).thenThrow(new UserNotFoundException("User not found"));
 
         // Act & Assert
-        assertThrows(UserNotFoundException.class, () -> userController.updateUser(1L, registrationRequest));
+        assertThrows(UserNotFoundException.class, () -> userController.patchUser(1L, new JsonPatch(List.of())));
     }
 
     @Test
     void deleteUser_WithExistingId_ReturnsDeletedUser() {
         // Arrange
-        when(userService.findById(1L)).thenReturn(user);
+        when(userService.findById(1L)).thenReturn(userResponse);
 
         // Act
         ResponseEntity<UserResponse> result = userController.deleteUser(1L);

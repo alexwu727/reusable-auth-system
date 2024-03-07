@@ -1,6 +1,10 @@
 package io.github.alexwu727.authsystemuserservice.exception;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.fge.jsonpatch.JsonPatchException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -58,5 +62,31 @@ public class GlobalExceptionHandler {
         errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
         errorResponse.setPath(request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(errorResponse);
+    }
+
+    @ExceptionHandler({JsonParseException.class, JsonProcessingException.class, JsonPatchException.class})
+    public ResponseEntity<ErrorResponse> handleJsonParseException(Exception ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        if (ex instanceof JsonParseException) {
+            errorResponse.setError(JsonParseException.class.getSimpleName());
+        } else if (ex instanceof JsonProcessingException) {
+            errorResponse.setError(JsonProcessingException.class.getSimpleName());
+        } else {
+            errorResponse.setError(JsonPatchException.class.getSimpleName());
+        }
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setPath(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(errorResponse);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setError(ex.getClass().getSimpleName());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setPath(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(errorResponse);
     }
 }
