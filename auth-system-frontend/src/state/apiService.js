@@ -22,13 +22,48 @@ export const apiService = createApi({
             }),
             invalidatesTags: ['User']
         }),
-        verify: builder.query({
+        verify: builder.mutation({
             query: (code) => {
                 var email = localStorage.getItem('email');
-                console.log("triggered verify query");
-                console.log(`auth/verify?email=${email}&verificationCode=${code}`)
                 return {
-                    url: `auth/verify?email=${email}&verificationCode=${code}`,
+                    url: 'auth/verify',
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        verificationCode: code
+                    },
+                    responseHandler: (response) => {
+                        if (response.headers.get('Content-Type').includes('text/plain')) {
+                            return response.text();
+                        } else {
+                            return response.json();
+                        }
+                    }
+                }
+            }
+        }),
+        // verify: builder.query({
+        //     query: (code) => {
+        //         var email = localStorage.getItem('email');
+        //         return {
+        //             url: `auth/verify?email=${email}&verificationCode=${code}`,
+        //             responseHandler: (response) => {
+        //                 if (response.headers.get('Content-Type').includes('text/plain')) {
+        //                     return response.text();
+        //                 } else {
+        //                     return response.json();
+        //                 }
+        //             }
+        //         }
+        //     },
+
+        // }),
+        resendVerificationCode: builder.mutation({
+            query: () => {
+                var email = localStorage.getItem('email');
+                return {
+                    url: `auth/resend-verification-code?email=${email}`,
+                    method: 'POST',
                     responseHandler: (response) => {
                         if (response.headers.get('Content-Type').includes('text/plain')) {
                             return response.text();
@@ -38,7 +73,7 @@ export const apiService = createApi({
                     }
                 }
             },
-            providesTags: ['User']
+            invalidatesTags: ['User']
         }),
         login: builder.mutation({
             query: (user) => ({
@@ -73,4 +108,4 @@ export const apiService = createApi({
     })
 });
 
-export const { useRegisterMutation, useLazyVerifyQuery, useLoginMutation, useGetUsersQuery, useGetUserQuery, useGetCurrentUserQuery, usePatchUserMutation } = apiService;
+export const { useRegisterMutation, useVerifyMutation, useResendVerificationCodeMutation, useLoginMutation, useGetUsersQuery, useGetUserQuery, useGetCurrentUserQuery, usePatchUserMutation } = apiService;
