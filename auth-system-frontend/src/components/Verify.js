@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button } from '@mui/material';
-import { useLazyVerifyQuery } from '../state/apiService';
+import { useVerifyMutation, useResendVerificationCodeMutation } from '../state/apiService';
 
 
 const Verify = () => {
-    const [result, setResult] = useState('');
-    const [trigger, { data: message, isLoading, error }] = useLazyVerifyQuery();
+    const [verify, { data, error }] = useVerifyMutation();
+    const [resend, { data: resendData, error: resendError }] = useResendVerificationCodeMutation();
     const navigate = useNavigate();
     const [code, setCode] = useState('');
     const inputRef = [
@@ -27,7 +27,6 @@ const Verify = () => {
     }
 
     const handleInput = (e, index) => {
-        console.log(index);
         const value = e.target.value;
         const next = inputRef[index + 1];
 
@@ -82,19 +81,28 @@ const Verify = () => {
         inputRef[Math.min(currIndex + length, 5)].current.focus();
     }
 
-    const handleVerify = () => {
-        trigger(code)
+    const handleVerify = useCallback(() => {
+        verify(code)
+            .unwrap()
             .then(response => {
-                if (!response.error) {
-                    setResult(response);
-                    const timer = setTimeout(() => {
-                        navigate("/login");
-                    }, 3000);
-                } else if (response.error.data.message === "User is already verified") {
-                    const timer = setTimeout(() => {
+                setTimeout(() => {
+                    navigate("/login");
+                }, 3000);
+            })
+            .catch(e => {
+                if (e.data?.message === "User is already verified") {
+                    setTimeout(() => {
                         navigate("/login");
                     }, 3000);
                 }
+            });
+    }, [code, navigate, verify]);
+
+    const handleResend = () => {
+        resend()
+            .unwrap()
+            .then(response => {
+                console.log(response);
             })
             .catch(e => {
                 console.log(e);
@@ -111,15 +119,13 @@ const Verify = () => {
         if (!email) {
             navigate('/register');
         }
-    }, []);
+    }, [navigate]);
 
     useEffect(() => {
         if (code.length === 6) {
             handleVerify();
-        } else {
-            setResult('');
         }
-    }, [code]);
+    }, [code, handleVerify]);
 
     return (
         <Box
@@ -175,9 +181,18 @@ const Verify = () => {
             >
                 Verify
             </Button>
+            <Button
+                variant="contained"
+                onClick={handleResend}
+                sx={{ margin: '10px' }}
+            >
+                Resend
+            </Button>
             {error && code.length === 6 && <Typography sx={{ color: 'red' }}>{error.data.message}</Typography>}
-            {message && <Typography sx={{ margin: '10px' }}>{message}</Typography>}
-            {(message === "User verified successfully" || error && error.data.message === "User is already verified") && <Typography sx={{ margin: '10px' }}>Redirecting to login...</Typography>}
+            {data && <Typography sx={{ margin: '10px' }}>{data}</Typography>}
+            {(data === "User verified successfully" || (error && error.data.message === "User is already verified")) && <Typography sx={{ margin: '10px' }}>Redirecting to login...</Typography>}
+            {resendError && <Typography sx={{ color: 'red' }}>{resendError.data.message}</Typography>}
+            {resendData && <Typography sx={{ margin: '10px' }}>{resendData}</Typography>}
         </Box>
     )
 }
