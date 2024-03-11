@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useUser } from '../UserProvider'
-import { Avatar } from '@mui/material'
+import { useGetCurrentUserQuery } from '../state/apiService'
 
 const Info = () => {
+    const { data: user, error, isLoading } = useGetCurrentUserQuery();
     const [data, setData] = useState('');
     const navigate = useNavigate();
     const { updateUser } = useUser();

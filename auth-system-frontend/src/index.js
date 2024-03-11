@@ -4,10 +4,23 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { apiService } from './state/apiService';
+
+const store = configureStore({
+  reducer: {
+    [apiService.reducerPath]: apiService.reducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiService.middleware)
+})
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>
 );
 

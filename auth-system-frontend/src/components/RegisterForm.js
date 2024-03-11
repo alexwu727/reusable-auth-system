@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+// import axios from 'axios'
 import { Box, Typography, TextField, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useRegisterMutation } from '../state/apiService';
 
 const RegisterForm = () => {
+    const [register, { error }] = useRegisterMutation();
     const [user, setUser] = useState({
         username: '',
         email: '',
         password: '',
         role: 'USER'
     });
-    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -22,17 +23,30 @@ const RegisterForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8080/api/v1/users/register', user)
+        register(user)
+            .unwrap()
             .then(response => {
-                localStorage.setItem('token', response.data.token);
-                navigate("/info");
+                localStorage.setItem('email', user.email);
+                navigate("/verify");
             })
             .catch(error => {
-                if (error.response) {
-                    setError(error.response.data.message)
-                }
+                console.log(error);
             });
     }
+
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     axios.post('http://localhost:8080/api/v1/auth/register', user)
+    //         .then(response => {
+    //             localStorage.setItem('token', response.data.token);
+    //             navigate("/info");
+    //         })
+    //         .catch(error => {
+    //             if (error.response) {
+    //                 setError(error.response.data.message)
+    //             }
+    //         });
+    // }
 
     return (
         <Box
@@ -80,7 +94,7 @@ const RegisterForm = () => {
             >
                 Register
             </Button>
-            {error && <Typography variant="h6" color="error">{error}</Typography>}
+            {error && <Typography variant="h6" color="error">{error.data.message}</Typography>}
         </Box>
     )
 }
