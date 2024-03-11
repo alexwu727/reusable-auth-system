@@ -79,7 +79,9 @@ public class AuthService {
                 .build();
     }
 
-    public void verifyUser(String email, String verificationCode) {
+    public void verifyUser(VerificationRequest request) {
+        String email = request.getEmail();
+        String verificationCode = request.getVerificationCode();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
         if (user.isVerified()) {
             throw new UserAlreadyVerifiedException("User is already verified");

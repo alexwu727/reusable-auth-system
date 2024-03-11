@@ -18,14 +18,15 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@RequestBody @Validated RegistrationRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("verify")
-    public ResponseEntity<String> verify(@RequestParam String email, @RequestParam String verificationCode) {
-        authService.verifyUser(email, verificationCode);
+    public ResponseEntity<String> verify(@RequestBody @Validated VerificationRequest request) {
+        authService.verifyUser(request);
         return ResponseEntity.ok("User verified successfully");
     }
 

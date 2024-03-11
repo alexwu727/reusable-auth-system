@@ -33,7 +33,22 @@ public class CodeUtil {
 //        message.setTo(email);
         String subject = isVerification ? "Verification" : "Password Reset";
         message.setSubject(subject + " Code");
-        message.setText("Hello, " + username + ". Your " + subject.toLowerCase() + " code is: " + code);
+        // hello alexwu727, your verification code is: 123456
+        //
+        // or you can click the link below to verify your email
+        //
+        // http://localhost:8080/api/v1/auth/verify?email=alexwu727&verificationCode=123456
+
+        String text = """
+                hello %s, your %s code is: %s
+                
+                or you can click the link below to verify your email
+                
+                http://localhost:3000/verify-result?email=%s&code=%s
+                """;
+        message.setText(String.format(text, username, subject, code, email, code));
+
+
         mailSender.send(message);
     }
 }
