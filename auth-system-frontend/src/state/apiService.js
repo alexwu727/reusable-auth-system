@@ -42,22 +42,6 @@ export const apiService = createApi({
                 }
             }
         }),
-        // verify: builder.query({
-        //     query: (code) => {
-        //         var email = localStorage.getItem('email');
-        //         return {
-        //             url: `auth/verify?email=${email}&verificationCode=${code}`,
-        //             responseHandler: (response) => {
-        //                 if (response.headers.get('Content-Type').includes('text/plain')) {
-        //                     return response.text();
-        //                 } else {
-        //                     return response.json();
-        //                 }
-        //             }
-        //         }
-        //     },
-
-        // }),
         resendVerificationCode: builder.mutation({
             query: () => {
                 var email = localStorage.getItem('email');
