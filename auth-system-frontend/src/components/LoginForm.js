@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button } from '@mui/material';
+import { Box, Typography, TextField, Button, InputAdornment, IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [user, setUser] = useState({
         username: '',
@@ -52,15 +54,29 @@ const LoginForm = () => {
                 label="Username"
                 name="username"
                 onChange={handleChange}
-                sx={{ margin: '10px' }}
+                sx={{ margin: '10px', width: '60%' }}
             />
             <TextField
                 required
                 label="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 onChange={handleChange}
-                sx={{ margin: '10px' }}
+                sx={{ margin: '10px', width: '60%' }}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label='toggle password visibility'
+                                onClick={() => setShowPassword(!showPassword)}
+                                onMouseDown={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <Visibility /> : <VisibilityOff />}
+                            </IconButton>
+                        </InputAdornment>
+                    )
+
+                }}
             />
             {/* error */}
             {error && <Typography variant="h6" color="error">{error}</Typography>}
