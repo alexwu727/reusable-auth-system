@@ -1,4 +1,10 @@
+FROM maven:3.8.1-openjdk-17-slim AS build
+WORKDIR /app
+COPY src /app/src
+COPY pom.xml /app
+RUN mvn -f /app/pom.xml clean package -DskipTests
+
 FROM openjdk:17-jdk-slim
-LABEL authors="alexwu"
-COPY target/auth-system-api-gateway-0.0.1-SNAPSHOT.jar /app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+WORKDIR /app
+COPY --from=build /app/target/*.jar /app/app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]
