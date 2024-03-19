@@ -32,13 +32,21 @@ public class JwtUtil {
         return generateToken(Map.of(), user);
     }
 
+    public String generateToken(User user, int hours) {
+        return generateToken(Map.of(), user, hours);
+    }
+
     public String generateToken(Map<String, Object> extraClaims, User user) {
+        return generateToken(extraClaims, user, 12);
+    }
+
+    public String generateToken(Map<String, Object> extraClaims, User user, int hours) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(String.valueOf(user.getId()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * hours))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
