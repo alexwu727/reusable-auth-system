@@ -4,7 +4,6 @@ import { Box, Typography } from '@mui/material'
 import { useUser } from '../contexts/UserProvider'
 
 const PublicNavbar = () => {
-    const { user } = useUser();
     return (
         <Box
             sx={{
