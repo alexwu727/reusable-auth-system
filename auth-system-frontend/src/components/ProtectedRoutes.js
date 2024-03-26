@@ -10,7 +10,7 @@ const ProtectedRoutes = () => {
         if (!isLoading && !user) {
             navigate('/login');
         }
-    }, [user, navigate]);
+    }, [user, navigate, isLoading]);
 
     if (isLoading) return <div>Loading...</div>;
 

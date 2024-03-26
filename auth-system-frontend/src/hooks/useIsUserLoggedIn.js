@@ -9,6 +9,7 @@ const useIsUserLoggedIn = () => {
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(null);
 
     useEffect(() => {
+        console.log('useIsUserLoggedIn');
         setIsLoading(true);
 
         if (user) {
@@ -37,7 +38,7 @@ const useIsUserLoggedIn = () => {
                 setIsUserLoggedIn(false);
                 setIsLoading(false);
             });
-    }, [user, trigger, login]);
+    }, [user, trigger, login, setIsLoading]);
 
     return { isUserLoggedIn };
 }

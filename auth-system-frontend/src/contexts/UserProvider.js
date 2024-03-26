@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const UserContext = createContext();
 
@@ -10,7 +9,6 @@ export const useUser = () => {
 const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
 
     const login = (data) => {
         setUser(data);

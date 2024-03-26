@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react'
-import Navbar from './Navbar'
+import React from 'react'
 import PublicNavbar from './PublicNavbar'
 import ProtectedNavbar from './ProtectedNavbar'
 import { Outlet } from 'react-router-dom'
@@ -9,7 +8,7 @@ import { useUser } from '../contexts/UserProvider'
 
 const Layout = () => {
     const { user, isLoading } = useUser();
-    const { isUserLoggedIn } = useIsUserLoggedIn();
+    useIsUserLoggedIn();
 
     return (
         <div>
