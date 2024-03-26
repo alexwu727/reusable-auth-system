@@ -1,9 +1,9 @@
 import React from 'react'
 
-const MySpace = () => {
+const MySpacePage = () => {
     return (
         <div>MySpace</div>
     )
 }
 
-export default MySpace
+export default MySpacePage

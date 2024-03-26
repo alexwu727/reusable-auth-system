@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { useVerifyMutation } from '../state/apiService';
+import { useVerifyMutation } from '../services/apiService';
 import { useSearchParams } from 'react-router-dom';
 
-const VerifyResult = () => {
+const VerifyResultPage = () => {
     const [verify, { error }] = useVerifyMutation();
     const [searchParams] = useSearchParams();
     const code = searchParams.get('code');
@@ -53,4 +53,4 @@ const VerifyResult = () => {
     );
 }
 
-export default VerifyResult
+export default VerifyResultPage

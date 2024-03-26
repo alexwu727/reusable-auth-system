@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { DataGrid } from '@mui/x-data-grid';
 
-const Admin = () => {
+const AdminPage = () => {
     const columns = [
         { field: 'id', headerName: 'ID', width: 70 },
         { field: 'username', headerName: 'Username', flex: 1, minWidth: 150 },
@@ -37,4 +37,4 @@ const Admin = () => {
     )
 }
 
-export default Admin
+export default AdminPage

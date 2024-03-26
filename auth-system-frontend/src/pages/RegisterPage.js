@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 // import axios from 'axios'
 import { Box, Typography, TextField, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useRegisterMutation } from '../state/apiService';
+import { useRegisterMutation } from '../services/apiService';
 
-const RegisterForm = () => {
+const RegisterPage = () => {
     const [register, { error }] = useRegisterMutation();
     const [user, setUser] = useState({
         username: '',
@@ -99,4 +99,4 @@ const RegisterForm = () => {
     )
 }
 
-export default RegisterForm
+export default RegisterPage

@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Explore = () => {
+const ExplorePage = () => {
     return (
         <div>Explore</div>
     )
 }
 
-export default Explore
+export default ExplorePage

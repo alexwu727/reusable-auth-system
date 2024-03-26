@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button } from '@mui/material';
-import { useVerifyMutation, useResendVerificationCodeMutation } from '../state/apiService';
+import { useVerifyMutation, useResendVerificationCodeMutation } from '../services/apiService';
 
 
-const Verify = () => {
+const VerifyPage = () => {
     const [verify, { data, error }] = useVerifyMutation();
     const [resend, { data: resendData, error: resendError }] = useResendVerificationCodeMutation();
     const navigate = useNavigate();
@@ -189,12 +189,12 @@ const Verify = () => {
                 Resend
             </Button>
             {error && code.length === 6 && <Typography sx={{ color: 'red' }}>{error.data.message}</Typography>}
-            {data && <Typography sx={{ margin: '10px' }}>{data}</Typography>}
-            {(data === "User verified successfully" || (error && error.data.message === "User is already verified")) && <Typography sx={{ margin: '10px' }}>Redirecting to login...</Typography>}
+            {data && <Typography sx={{ margin: '10px' }}>{data.message}</Typography>}
+            {((data && data.message === "User verified successfully") || (error && error.data.message === "User is already verified")) && <Typography sx={{ margin: '10px' }}>Redirecting to login...</Typography>}
             {resendError && <Typography sx={{ color: 'red' }}>{resendError.data.message}</Typography>}
-            {resendData && <Typography sx={{ margin: '10px' }}>{resendData}</Typography>}
+            {resendData && <Typography sx={{ margin: '10px' }}>{resendData.message}</Typography>}
         </Box>
     )
 }
 
-export default Verify
+export default VerifyPage

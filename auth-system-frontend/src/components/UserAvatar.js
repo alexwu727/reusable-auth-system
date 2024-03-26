@@ -1,12 +1,12 @@
 import { Avatar } from '@mui/material'
 import React, { useState } from 'react'
-import { useUser } from '../UserProvider'
+import { useUser } from '../contexts/UserProvider'
 import { Box, Menu, MenuItem } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 
 const UserAvatar = () => {
     const navigate = useNavigate();
-    const { user, updateUser } = useUser();
+    const { user, logout } = useUser();
     const [anchorEl, setAnchorEl] = useState(null);
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -16,7 +16,8 @@ const UserAvatar = () => {
     }
     const handleLogout = () => {
         localStorage.removeItem('token');
-        updateUser(null);
+        sessionStorage.removeItem('token');
+        logout();
         navigate('/login');
         // handleClose();
     }

@@ -3,8 +3,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 export const apiService = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: 'http://localhost:8080/api/v1/',
-        prepareHeaders: (headers, { getState }) => {
-            const token = localStorage.getItem('token');
+        prepareHeaders: (headers) => {
+            var token = localStorage.getItem('token');
+            if (!token) {
+                token = sessionStorage.getItem('token');
+            }
             if (token) {
                 headers.set('Authorization', `Bearer ${token}`);
             }
@@ -66,6 +69,9 @@ export const apiService = createApi({
                 body: user
             }),
         }),
+        refreshToken: builder.mutation({
+            query: () => 'auth/refresh-token',
+        }),
         getUsers: builder.query({
             query: () => 'users',
             providesTags: ['User']
@@ -92,4 +98,4 @@ export const apiService = createApi({
     })
 });
 
-export const { useRegisterMutation, useVerifyMutation, useResendVerificationCodeMutation, useLoginMutation, useGetUsersQuery, useGetUserQuery, useGetCurrentUserQuery, usePatchUserMutation } = apiService;
+export const { useRegisterMutation, useVerifyMutation, useResendVerificationCodeMutation, useLoginMutation, useRefreshTokenMutation, useGetUsersQuery, useGetUserQuery, useGetCurrentUserQuery, useLazyGetCurrentUserQuery, usePatchUserMutation } = apiService;

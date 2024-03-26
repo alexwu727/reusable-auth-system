@@ -1,7 +1,7 @@
 import React from 'react'
 import NavItem from './NavItem'
 import { Box, Typography } from '@mui/material'
-import { useUser } from '../UserProvider'
+import { useUser } from '../contexts/UserProvider'
 import UserAvatar from './UserAvatar'
 
 const Navbar = () => {
@@ -31,15 +31,6 @@ const Navbar = () => {
             {user && <UserAvatar />}
             {!user && <NavItem to='/register'>Register</NavItem>}
             {!user && <NavItem to='/login'>Log in</NavItem>}
-            {/* <Box
-                sx={{
-                    border: '1px solid',
-                    borderRadius: '5px',
-                    padding: '5px 15px',
-                }}
-            >
-                <NavItem to='/login'>Log in</NavItem>
-            </Box> */}
         </Box>
     )
 }
