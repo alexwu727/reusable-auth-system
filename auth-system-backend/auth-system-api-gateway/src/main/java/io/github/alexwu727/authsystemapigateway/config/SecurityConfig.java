@@ -22,11 +22,13 @@ public class SecurityConfig {
                 .authorizeExchange(
                         requests ->
                                 requests
-                                        .pathMatchers("/api/v1/auth/**").permitAll()
-                                        .pathMatchers( "/api/v1/users/test").permitAll()
-                                        .pathMatchers( "/api/v1/users/register").permitAll()
+//                                        .pathMatchers("/api/v1/auth/**").permitAll()
+                                        .pathMatchers("/api/v1/auth/register").permitAll()
+                                        .pathMatchers("/api/v1/auth/login").permitAll()
+                                        .pathMatchers("/api/v1/auth/verify").permitAll()
+                                        .pathMatchers("/api/v1/auth/resend-verification-code").permitAll()
+                                        .pathMatchers("/api/v1/auth/forgot-password").permitAll()
                                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                        .pathMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                                         .pathMatchers("/helloReactiveGateway/**").permitAll()
                                         .anyExchange().authenticated()
                 )
