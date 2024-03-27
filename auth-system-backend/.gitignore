@@ -34,4 +34,5 @@ replay_pid*
 
 ### application dev properties ###
 **/application-dev.properties
+**/application-container.properties
 
