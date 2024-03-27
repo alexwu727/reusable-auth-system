@@ -41,7 +41,7 @@ public class AuthService {
     @Value("${user.service.base.url}")
     private String userServiceBaseUrl;
 
-    public AuthResponse register(RegistrationRequest request) {
+    public void register(RegistrationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
             if (!user.isVerified() && (user.getVerificationCodeExpiration().before(new Date()))) {
@@ -73,10 +73,6 @@ public class AuthService {
                 .build();
         userRepository.save(user);
         codeUtil.sendCode(request.getUsername(), request.getEmail(), verificationCode, true);
-        String token = jwtUtil.generateToken(user);
-        return AuthResponse.builder()
-                .token(token)
-                .build();
     }
 
     public void verifyUser(VerificationRequest request) {
@@ -107,6 +103,20 @@ public class AuthService {
         user.enable();
         storeInUserService(user);
         user.setVerificationCode(null);
+        userRepository.save(user);
+    }
+
+    public void resendVerificationCode(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (user.isVerified()) {
+            throw new UserAlreadyVerifiedException("User is already verified");
+        }
+        if (user.getVerificationCodeExpiration().before(new Date())) {
+            userRepository.delete(user);
+            throw new UserNotFoundException("User not found");
+        }
+        codeUtil.sendCode(user.getUsername(), user.getEmail(), user.getVerificationCode(), true);
+        user.setVerificationCodeExpiration(new Date(System.currentTimeMillis() + 2 * 60 * 1000));
         userRepository.save(user);
     }
 
@@ -144,6 +154,7 @@ public class AuthService {
             throw new UserNotVerifiedException("User is not verified");
         }
         user.setLastLoginDate(new Date());
+        user.setLastLandDate(new Date());
         userRepository.save(user);
 
         authenticationManager.authenticate(
@@ -153,8 +164,21 @@ public class AuthService {
                 )
         );
 
-        String token = jwtUtil.generateToken(user);
+        String token = request.isRememberMe() ? jwtUtil.generateToken(user, 720) : jwtUtil.generateToken(user);
 
+        return AuthResponse.builder()
+                .token(token)
+                .build();
+    }
+
+    public AuthResponse refreshToken(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!user.isVerified()) {
+            throw new UserNotVerifiedException("User is not verified");
+        }
+        String token = jwtUtil.generateToken(user);
+        user.setLastLandDate(new Date());
+        userRepository.save(user);
         return AuthResponse.builder()
                 .token(token)
                 .build();

@@ -15,8 +15,9 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Validated RegistrationRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<MessageResponse> register(@RequestBody @Validated RegistrationRequest request) {
+        authService.register(request);
+        return ResponseEntity.ok(new MessageResponse("User registered successfully"));
     }
 
     @PostMapping("/login")
@@ -24,10 +25,23 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestHeader(value = "User-Id") String userId) {
+        System.out.println("User-Id: " + userId);
+        long id = Long.parseLong(userId);
+        return ResponseEntity.ok(authService.refreshToken(id));
+    }
+
     @PostMapping("verify")
-    public ResponseEntity<String> verify(@RequestBody @Validated VerificationRequest request) {
+    public ResponseEntity<MessageResponse> verify(@RequestBody @Validated VerificationRequest request) {
         authService.verifyUser(request);
-        return ResponseEntity.ok("User verified successfully");
+        return ResponseEntity.ok(new MessageResponse("User verified successfully"));
+    }
+
+    @PostMapping("resend-verification-code")
+    public ResponseEntity<MessageResponse> resendVerificationCode(@RequestParam String email) {
+        authService.resendVerificationCode(email);
+        return ResponseEntity.ok(new MessageResponse("Verification code sent successfully"));
     }
 
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
@@ -36,26 +50,26 @@ public class AuthController {
     }
 
     @PostMapping("update-password")
-    public ResponseEntity<String> updatePassword(@RequestBody @Validated UpdatePasswordRequest request) {
+    public ResponseEntity<MessageResponse> updatePassword(@RequestBody @Validated UpdatePasswordRequest request) {
         authService.updatePassword(request);
-        return ResponseEntity.ok("Password updated successfully");
+        return ResponseEntity.ok(new MessageResponse("Password updated successfully"));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<MessageResponse> forgotPassword(@RequestParam String email) {
         authService.createPasswordResetVerificationCode(email);
-        return ResponseEntity.ok("Password reset verification code sent successfully");
+        return ResponseEntity.ok(new MessageResponse("Password reset code sent successfully"));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody @Validated ResetPasswordRequest request) {
+    public ResponseEntity<MessageResponse> resetPassword(@RequestBody @Validated ResetPasswordRequest request) {
         authService.verifyAndResetPassword(request);
-        return ResponseEntity.ok("Password reset successfully");
+        return ResponseEntity.ok(new MessageResponse("Password reset successfully"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> delete(@PathVariable Long id) {
         authService.delete(id);
-        return ResponseEntity.ok("User deleted successfully");
+        return ResponseEntity.ok(new MessageResponse("User deleted successfully"));
     }
 }

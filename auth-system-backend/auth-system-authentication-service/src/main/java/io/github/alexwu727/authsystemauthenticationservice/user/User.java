@@ -60,6 +60,10 @@ public class User implements UserDetails{
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLoginDate;
 
+    @Column(name = "last_land_date", nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastLandDate;
+
     @Column(name = "last_update_date", nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastUpdateDate;
@@ -70,7 +74,6 @@ public class User implements UserDetails{
     @Column(name = "verification_code_expiration", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date verificationCodeExpiration;
-
 
     @Override
     public String getPassword() {
