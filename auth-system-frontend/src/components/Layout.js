@@ -12,8 +12,8 @@ const Layout = () => {
 
     return (
         <div>
-            {!isLoading && user ? <ProtectedNavbar /> : <PublicNavbar />}
-            <Container sx={{ marginTop: '1rem' }}>
+            <Container>
+                {!isLoading && user ? <ProtectedNavbar /> : <PublicNavbar />}
                 <Outlet />
             </Container>
         </div>
