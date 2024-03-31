@@ -8,25 +8,15 @@ const PublicNavbar = () => {
         <Box
             sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '20px',
                 color: 'primary.main',
-                borderBottom: '2px solid',
+                gap: '20px',
             }}
         >
-
-            <NavItem to='/'>
-                <Typography
-                    sx={{
-                        fontWeight: 'bold',
-                        marginLeft: '20px',
-                        marginRight: '50%'
-                    }}
-                >Login App</Typography>
-            </NavItem>
-            <NavItem to='/register'>Register</NavItem>
-            <NavItem to='/login'>Log in</NavItem>
+            <NavItem to='/'>Login App</NavItem>
+            <NavItem to='/register' style={{ marginLeft: 'auto' }}>Register</NavItem>
+            <NavItem to='/login' style={{ border: '2px solid', padding: '3px 10px', borderRadius: '12px' }}>Login</NavItem>
         </Box>
     )
 }
