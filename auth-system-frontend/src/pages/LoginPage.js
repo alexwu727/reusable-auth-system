@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { Box, Checkbox, Typography, TextField, Button, InputAdornment, IconButton } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Box, Checkbox, Typography, TextField, Button, InputAdornment, IconButton, Divider, Link as MuiLink } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useLoginMutation } from '../services/apiService';
 import { useUser } from '../contexts/UserProvider';
@@ -55,99 +55,103 @@ const LoginPage = () => {
     }
 
     return (
-        <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                margin: '40px auto',
-                padding: '20px',
-                border: '3px solid',
-                borderColor: 'primary.main',
-                borderRadius: '15px',
-                width: '40%'
-            }}
-        >
-            <Typography variant="h4" sx={{ margin: '10px' }}>Login</Typography>
-            <TextField
-                required
-                label="Username"
-                name="username"
-                onChange={handleChange}
-                sx={{ margin: '10px', width: '60%' }}
-            />
-            <TextField
-                required
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                onChange={handleChange}
-                sx={{ margin: '10px', width: '60%' }}
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <IconButton
-                                aria-label='toggle password visibility'
-                                onClick={() => setShowPassword(!showPassword)}
-                                onMouseDown={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                            </IconButton>
-                        </InputAdornment>
-                    )
-
-                }}
-            />
+        <div>
+            <Typography sx={{
+                fontSize: '1.75rem',
+                textAlign: 'center',
+                fontWeight: 'bold',
+            }}>Sign up</Typography>
             <Box
+                component="form"
+                onSubmit={handleSubmit}
                 sx={{
+                    background: '#f3f3f3',
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    margin: '10px'
+                    margin: '20px auto',
+                    padding: '20px',
+                    borderRadius: '15px',
+                    width: '25%',
+                    boxShadow: 2,
+                    justifyContent: 'center'
                 }}
             >
-                <Checkbox onChange={handleRememberMe} />
-                <Typography variant="body2">Remember me</Typography>
-
+                <TextField
+                    required
+                    label="Username"
+                    name="username"
+                    onChange={handleChange}
+                />
+                <TextField
+                    required
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    onChange={handleChange}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label='toggle password visibility'
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    onMouseDown={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}
+                />
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    alignSelf: 'flex-start',
+                    marginLeft: '6.5%'
+                }}>
+                    <Checkbox size="small" onChange={handleRememberMe} />
+                    <Typography sx={{ fontSize: '0.8rem' }}>Remember me</Typography>
+                </Box>
                 <Typography
                     variant="body2"
                     color="primary"
-                    sx={{ margin: '10px', cursor: 'pointer', textDecoration: 'underline' }}
+                    sx={{ cursor: 'pointer', textDecoration: 'underline', margin: '1px' }}
                     onClick={handleForgotPassword}
                 >
                     Forgot password?
                 </Typography>
-            </Box>
-            {error && error.status !== 403 && < Typography variant="h6" color="error">{error.data.message}</Typography>}
-            <Button
-                type="submit"
-                variant="contained"
-                sx={{ margin: '10px' }}
-            >
-                Login
-            </Button>
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center'
-                }}
-            >
-                <Typography variant="body2">
-                    Don't have an account?
-                </Typography>
-                <Typography
-                    variant="body2"
-                    color="primary"
-                    sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-                    onClick={() => navigate("/register")}
+                {error && error.status !== 403 && < Typography variant="h6" color="error">{error.data.message}</Typography>}
+                <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{ margin: '10px', width: '80%', borderRadius: '15px' }}
                 >
-                    Register
+                    Login
+                </Button>
+                <Typography
+                    sx={{ fontSize: '0.75rem', margin: '10px' }}
+                >Don't have an account? {' '}
+                    <MuiLink
+                        component={RouterLink}
+                        to="/register"
+                        color="secondary"
+                        sx={{ textDecoration: 'none' }}
+                    >
+                        Sign up
+                    </MuiLink>
                 </Typography>
-            </Box>
-        </Box >
+                <Divider sx={{ margin: '10px', width: '80%' }} > or </Divider>
+                <Button
+                    variant="outlined"
+                    sx={{ margin: '10px', width: '80%', borderRadius: '15px' }}
+                > Sign in with Google</Button>
+                <Button
+                    variant="outlined"
+                    sx={{ margin: '10px', width: '80%', borderRadius: '15px' }}
+                > Sign in with GitHub</Button>
+
+            </Box >
+        </div>
     )
 }
 
