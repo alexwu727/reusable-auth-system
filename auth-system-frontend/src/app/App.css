@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  font-family: "Reddit Mono", monospace;
+  font-optical-sizing: auto;
+  font-style: normal;
 }
 
 .App-logo {
