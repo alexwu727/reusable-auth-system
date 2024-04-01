@@ -60,7 +60,7 @@ const LoginPage = () => {
                 fontSize: '1.75rem',
                 textAlign: 'center',
                 fontWeight: 'bold',
-            }}>Sign up</Typography>
+            }}>Sign in</Typography>
             <Box
                 component="form"
                 onSubmit={handleSubmit}
