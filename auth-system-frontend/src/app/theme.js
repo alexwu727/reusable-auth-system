@@ -10,7 +10,8 @@ const theme = createTheme({
         },
     },
     typography: {
-        fontFamily: 'Reddit Mono, monospace',
+        fontFamily: 'JetBrains Mono, monospace',
+        color: '#f44336',
     },
     components: {
         MuiButton: {
