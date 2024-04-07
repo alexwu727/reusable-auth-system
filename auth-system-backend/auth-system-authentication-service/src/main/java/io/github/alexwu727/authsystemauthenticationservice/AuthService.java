@@ -187,6 +187,13 @@ public class AuthService {
                 .build();
     }
 
+    public User getUser(Long id) {
+        if (!hasPermission(id)) {
+            throw new AccessDeniedException("You do not have permission to get this user");
+        }
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
     public UpdateResponse update(Long id, JsonPatch patch) {
         if (!hasPermission(id)) {
             throw new AccessDeniedException("You do not have permission to update this user");
