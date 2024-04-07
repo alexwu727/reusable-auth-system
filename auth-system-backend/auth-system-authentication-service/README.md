@@ -1,24 +1,41 @@
-# API Documentataion
+# API Documentation
 
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
 2. [API Endpoints](#2-api-endpoints)
-   1. [User Registration](#21-user-registration)
-      1. [Register a New User](#211-register-a-new-user)
-      2. [Verify Email](#212-verify-email)
-      3. [Resend Verification Email](#213-resend-verification-email)
-   2. [User Authentication](#22-user-authentication)
-      1. [Login](#221-login)
-      2. [Refresh Token](#222-refresh-token)
-   3. [Update User Profile](#23-update-user-profile)
-      1. [Patch User Profile](#231-patch-user-profile)
-      2. [Forgot Password](#232-forgot-password)
-      3. [Reset Password](#233-reset-password)
-      4. [Update Password](#234-update-password)
-   4. [User Management](#24-user-management)
-      1. [Get User](#241-get-user)
-      2. [Delete User](#242-delete-user)
+   1. <details> 
+        <summary> <a href="#21-user-registration">User Registration</a> </summary>
+        <ol>
+          <li> <a href="#211-register-a-new-user">Register a New User</a> </li>
+          <li> <a href="#212-verify-email">Verify Email</a> </li>
+          <li> <a href="#213-resend-verification-email">Resend Verification Email</a> </li>
+        </ol>
+      </details>
+   2. <details> 
+        <summary> <a href="#22-user-authentication">User Authentication</a> </summary>
+        <ol>
+          <li> <a href="#221-login">Login</a> </li>
+          <li> <a href="#222-refresh-token">Refresh Token</a> </li>
+        </ol>
+        </details>
+    3. <details>
+          <summary> <a href="#23-update-user-profile">Update User Profile</a> </summary>
+            <ol>
+            <li> <a href="#231-patch-user-profile">Patch User Profile</a> </li>
+            <li> <a href="#232-forgot-password">Forgot Password</a> </li>
+            <li> <a href="#233-reset-password">Reset Password</a> </li>
+            <li> <a href="#234-update-password">Update Password</a> </li>
+            </ol>
+          </details>
+    4. <details>
+            <summary> <a href="#24-user-management">User Management</a> </summary>
+                <ol>
+                <li> <a href="#241-get-user">Get User</a> </li>
+                <li> <a href="#242-delete-user">Delete User</a> </li>
+                </ol>
+            </details>
+  
 
 ## 1. Introduction
 
@@ -271,4 +288,49 @@ Base URL: `http://[host]:[port]/api/v1/auth/`
     - AccessDeniedException
   - **404 Not Found**
     - UserNotFoundException
-  
+
+## 3. Data Models
+
+### 3.1. User
+
+- **Properties:**
+  - `id`: User ID
+  - `enabled`: User status
+  - `username`: Username
+  - `email`: Email address
+  - `password`: Password
+  - `verified`: Email verification status
+  - `verification_code`: Email verification code
+  - `verification_code_expiration`: Email verification code expiration date
+  - `roles`: User roles
+  - `registration_date`: User registration date
+  - `last_login_date`: User last login date
+  - `last_land_date`: User last land date
+  - `last_update_date`: User last update date
+
+### 3.2. Password Reset Verification Code
+
+- **Properties:**
+  - `id`: Verification code ID
+  - `user_id`: User ID
+  - `verification_code`: Verification code
+  - `expiration_date`: Verification code expiration date
+- **Relationships:**
+  - `user_id`: User
+
+## 4. Security
+
+The Auth System Authentication Service uses JWT (JSON Web Token) for authentication. The service generates a JWT token upon successful login and refreshes the token upon successful token refresh.
+
+### Secured Endpoints
+
+The following endpoints are secured and require a valid JWT token.
+
+- POST `/refresh-token`
+
+The following endpoints are secured and require a valid JWT token with the `ADMIN` role or the user's own JWT token.
+
+- GET `/{id}`
+- PATCH `/{id}`
+- DELETE `/{id}`
+- POST `/update-password`
