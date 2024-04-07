@@ -17,8 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -270,7 +273,16 @@ public class AuthService {
         if (!user.isVerified()) {
             throw new UserNotVerifiedException("User is not verified");
         }
-        PasswordResetVerificationCode token = PasswordResetVerificationCode.builder()
+        PasswordResetVerificationCode token;
+        if (passwordResetVerificationCodeRepository.existsByUser(user)) {
+            token = passwordResetVerificationCodeRepository.findByUser(user).orElseThrow(() -> new VerificationCodeNotFoundException("Verification code not found"));
+            if (token.getExpiryDate().after(new Date())) {
+                codeUtil.sendCode(user.getUsername(), user.getEmail(), token.getVerificationCode(), false);
+                return;
+            }
+            passwordResetVerificationCodeRepository.delete(token);
+        }
+        token = PasswordResetVerificationCode.builder()
                 .user(user)
                 .verificationCode(codeUtil.generateCode())
                 .expiryDate(new Date(System.currentTimeMillis() + PasswordResetVerificationCode.EXPIRATION * 60 * 1000))
