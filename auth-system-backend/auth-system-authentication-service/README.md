@@ -120,6 +120,21 @@ Base URL: `http://[host]:[port]/api/v1/auth/`
   - **404 Not Found**
     - UserNotFoundException
 
+#### 2.2.2. Refresh Token
+
+- **URL:** `/refresh-token`
+- **Method:** `POST`
+- **Description:** Refresh token.
+- **Response**:
+  - **200 OK**
+    - **Response Body:**
+```json
+{
+    "token": "[JWT]"
+}
+```
+  - **403 Forbidden**
+
 ### 2.3. Update User Profile
 
 #### 2.3.1. Patch User Profile
@@ -152,9 +167,103 @@ Base URL: `http://[host]:[port]/api/v1/auth/`
     - JsonPatchException
   - **403 Forbidden**
     - AccessDeniedException
+    - UserNotVerifiedException
   - **404 Not Found**
     - UserNotFoundException
   - **409 Conflict**
     - UsernameAlreadyExistsException
     - EmailAlreadyExistsException
-    
+
+#### 2.3.2. Forgot Password
+
+- **URL:** `/forgot-password`
+- **Method:** `POST`
+- **Description:** Send password reset link to user's email.
+- **Request Parameters:**
+  - `email`: Email address
+- **Response**:
+  - **200 OK**
+  - **400 Bad Request**
+    - MissingServletRequestParameterException
+  - **403 Forbidden**
+    - UserNotVerifiedException
+  - **404 Not Found**
+    - UserNotFoundException
+
+#### 2.3.3. Reset Password
+
+- **URL:** `/reset-password`
+- **Method:** `POST`
+- **Description:** Reset user's password.
+- **Request Body:**
+```json
+{
+  "email": "hello@world.com",
+  "verificationCode": "123456",
+  "newPassword": "helloworld2"
+}
+```
+- **Response**:
+  - **200 OK**
+  - **400 Bad Request**
+    - HttpMessageNotReadableException
+    - MethodArgumentNotValidException
+    - VerificationCodeMismatchException
+    - VerificationCodeExpiredException
+  - **403 Forbidden**
+    - UserNotVerifiedException
+  - **404 Not Found**
+    - UserNotFoundException
+    - VerificationCodeNotFoundException
+
+####  2.3.4. Update Password
+
+- **URL:** `/update-password`
+- **Method:** `POST`
+- **Description:** Update user's password.
+- **Request Body:**
+```json
+{
+  "email": "hello@world.com",
+  "oldPassword": "helloworld",
+  "newPassword": "helloworld2"
+}
+```
+- **Response**:
+  - **200 OK**
+  - **400 Bad Request**
+    - HttpMessageNotReadableException
+    - MethodArgumentNotValidException
+    - PasswordMismatchException
+  - **403 Forbidden**
+    - UserNotVerifiedException
+    - AccessDeniedException
+  - **404 Not Found**
+    - UserNotFoundException
+
+### 2.4. User Management
+
+#### 2.4.1. Get User
+
+- **URL:** `/{id}`
+- **Method:** `GET`
+- **Description:** Get user by id.
+- **Response**:
+  - **200 OK**
+  - **403 Forbidden**
+    - AccessDeniedException
+  - **404 Not Found**
+    - UserNotFoundException
+
+#### 2.4.2. Delete User
+
+- **URL:** `/{id}`
+- **Method:** `DELETE`
+- **Description:** Delete user by id.
+- **Response**:
+  - **200 OK**
+  - **403 Forbidden**
+    - AccessDeniedException
+  - **404 Not Found**
+    - UserNotFoundException
+  
