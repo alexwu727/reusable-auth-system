@@ -2,18 +2,23 @@
 
 ## Table of Contents
 
-### [1. Introduction](#introduction)
-### [2. API Endpoints](#api-endpoints)
-### [3. API Request and Response Examples](#api-request-and-response-examples)
-### [4. API Error Codes](#api-error-codes)
-### [5. API Security](#api-security)
-### [6. API Rate Limiting](#api-rate-limiting)
-### [7. API Versioning](#api-versioning)
-### [8. API Best Practices](#api-best-practices)
-### [9. API Testing](#api-testing)
-### [10. API Monitoring](#api-monitoring)
-### [11. API Documentation](#api-documentation)
-### [12. API References](#api-references)
+1. [Introduction](#1-introduction)
+2. [API Endpoints](#2-api-endpoints)
+   1. [User Registration](#21-user-registration)
+      1. [Register a New User](#211-register-a-new-user)
+      2. [Verify Email](#212-verify-email)
+      3. [Resend Verification Email](#213-resend-verification-email)
+   2. [User Authentication](#22-user-authentication)
+      1. [Login](#221-login)
+      2. [Refresh Token](#222-refresh-token)
+   3. [Update User Profile](#23-update-user-profile)
+      1. [Patch User Profile](#231-patch-user-profile)
+      2. [Forgot Password](#232-forgot-password)
+      3. [Reset Password](#233-reset-password)
+      4. [Update Password](#234-update-password)
+   4. [User Management](#24-user-management)
+      1. [Get User](#241-get-user)
+      2. [Delete User](#242-delete-user)
 
 ## 1. Introduction
 
