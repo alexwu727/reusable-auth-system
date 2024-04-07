@@ -23,21 +23,21 @@ public class JwtAuthFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, @NonNull WebFilterChain chain) {
         final String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
         final String jwt;
-        final String userId;
+        final String username;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return chain.filter(exchange);
         }
         jwt = authHeader.substring(7);
         try {
-            userId = jwtUtil.extractUserId(jwt);
+            username = jwtUtil.extractUsername(jwt);
         } catch (Exception e) {
             return chain.filter(exchange);
         }
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt)) {
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, null);
-                ServerHttpRequest mutatedRequest = exchange.getRequest().mutate().header("User-Id", userId).build();
+                        new UsernamePasswordAuthenticationToken(username, null, null);
+                ServerHttpRequest mutatedRequest = exchange.getRequest().mutate().header("username", username).build();
                 return chain.filter(exchange.mutate().request(mutatedRequest).build())
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
             }
