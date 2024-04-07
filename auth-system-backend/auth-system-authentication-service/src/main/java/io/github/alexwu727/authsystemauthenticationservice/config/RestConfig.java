@@ -20,6 +20,6 @@ public class RestConfig {
     @Profile("!dev")
     @LoadBalanced
     public RestTemplate loadBalancedRestTemplate() {
-        return new RestTemplate();
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 }
