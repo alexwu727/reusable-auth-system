@@ -188,7 +188,11 @@ public class AuthService {
     }
 
     public UpdateResponse update(Long id, JsonPatch patch) {
+        if (!hasPermission(id)) {
+            throw new AccessDeniedException("You do not have permission to update this user");
+        }
         Optional<User> user = userRepository.findById(id);
+
         if (user.isEmpty()) {
             throw new UserNotFoundException("User not found");
         }
@@ -258,6 +262,9 @@ public class AuthService {
     }
 
     public void delete(Long id) {
+        if (!hasPermission(id)) {
+            throw new AccessDeniedException("You do not have permission to delete this user");
+        }
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
             throw new UserNotFoundException("User not found");
@@ -313,6 +320,9 @@ public class AuthService {
 
     public void updatePassword(UpdatePasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (!hasPermission(user.getId())) {
+            throw new AccessDeniedException("You do not have permission to update this user");
+        }
         if (!user.isVerified()) {
             throw new UserNotVerifiedException("User is not verified");
         }
@@ -329,5 +339,12 @@ public class AuthService {
         }
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
+    }
+
+    private boolean hasPermission(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        long currentUserId = currentUser.getId();
+        return currentUserId == id || currentUser.getRole().equals(Role.ADMIN);
     }
 }
