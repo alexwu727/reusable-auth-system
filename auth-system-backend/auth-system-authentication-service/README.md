@@ -6,36 +6,39 @@
 2. [API Endpoints](#2-api-endpoints)
    1. <details> 
         <summary> <a href="#21-user-registration">User Registration</a> </summary>
-        <ol>
-          <li> <a href="#211-register-a-new-user">Register a New User</a> </li>
-          <li> <a href="#212-verify-email">Verify Email</a> </li>
-          <li> <a href="#213-resend-verification-email">Resend Verification Email</a> </li>
-        </ol>
+          <ol>
+            <li> <a href="#211-register-a-new-user">Register a New User</a> </li>
+            <li> <a href="#212-verify-email">Verify Email</a> </li>
+            <li> <a href="#213-resend-verification-email">Resend Verification Email</a> </li>
+          </ol>
       </details>
    2. <details> 
         <summary> <a href="#22-user-authentication">User Authentication</a> </summary>
-        <ol>
-          <li> <a href="#221-login">Login</a> </li>
-          <li> <a href="#222-refresh-token">Refresh Token</a> </li>
-        </ol>
-        </details>
-    3. <details>
-          <summary> <a href="#23-update-user-profile">Update User Profile</a> </summary>
-            <ol>
+          <ol>
+            <li> <a href="#221-login">Login</a> </li>
+            <li> <a href="#222-refresh-token">Refresh Token</a> </li>
+          </ol>
+      </details>
+   3. <details>
+        <summary> <a href="#23-update-user-profile">Update User Profile</a> </summary>
+          <ol>
             <li> <a href="#231-patch-user-profile">Patch User Profile</a> </li>
             <li> <a href="#232-forgot-password">Forgot Password</a> </li>
             <li> <a href="#233-reset-password">Reset Password</a> </li>
             <li> <a href="#234-update-password">Update Password</a> </li>
-            </ol>
-          </details>
-    4. <details>
-            <summary> <a href="#24-user-management">User Management</a> </summary>
-                <ol>
-                <li> <a href="#241-get-user">Get User</a> </li>
-                <li> <a href="#242-delete-user">Delete User</a> </li>
-                </ol>
-            </details>
-  
+          </ol>
+      </details>
+   4. <details>
+        <summary> <a href="#24-user-management">User Management</a> </summary>
+          <ol>
+            <li> <a href="#241-get-user">Get User</a> </li>
+            <li> <a href="#242-delete-user">Delete User</a> </li>
+          </ol>
+      </details>
+3. [Data Models](#3-data-models)
+   1. [User](#31-user)
+   2. [Password Reset Verification Code](#32-password-reset-verification-code)
+4. [Security](#4-security)
 
 ## 1. Introduction
 
