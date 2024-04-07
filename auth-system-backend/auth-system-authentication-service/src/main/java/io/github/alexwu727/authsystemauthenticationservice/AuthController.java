@@ -1,9 +1,14 @@
 package io.github.alexwu727.authsystemauthenticationservice;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import io.github.alexwu727.authsystemauthenticationservice.user.User;
 import io.github.alexwu727.authsystemauthenticationservice.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Validated LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -42,6 +47,11 @@ public class AuthController {
     public ResponseEntity<MessageResponse> resendVerificationCode(@RequestParam String email) {
         authService.resendVerificationCode(email);
         return ResponseEntity.ok(new MessageResponse("Verification code sent successfully"));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(authService.getUser(id));
     }
 
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
@@ -71,5 +81,23 @@ public class AuthController {
     public ResponseEntity<MessageResponse> delete(@PathVariable Long id) {
         authService.delete(id);
         return ResponseEntity.ok(new MessageResponse("User deleted successfully"));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<String> currentUser() {
+        System.out.println("Current user: ");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return ResponseEntity.ok("No user logged in");
+        }
+
+        String username = authentication.getName();
+        Object principal = authentication.getPrincipal();
+        String details = authentication.getDetails().toString();
+        String authorities = authentication.getAuthorities().toString();
+//        String credentials = authentication.getCredentials().toString();
+        String roles = authentication.getAuthorities().toString();
+        return ResponseEntity.ok("Username: " + username + "\nPrincipal: " + principal + "\nDetails: " + details + "\nAuthorities: " + authorities  + "\nRoles: " + roles);
     }
 }
